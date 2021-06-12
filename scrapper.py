@@ -18,9 +18,25 @@ def extract_element(dom_tree, selector, attribute=None):
 
 
 all_reviews = []
-
+product_id = input('Podaj kod produktu: ')
 service_url = 'https://www.ceneo.pl'
-next_page = '/39562616#tab=reviews'
+next_page = f"/{product_id}#tab=reviews"
+#39562616
+#71299209
+
+features = {
+            'author' : ["span.user-post__author-name"],
+            'recommendation' : ["span.user-post__author-recomendation"],
+            'stars' : ["span.user-post__score-count"],
+            'content' : ["div.user-post__text"],
+            'pros' : ["div.review-feature__title--positives ~ div.review-feature__item",[]], 
+            'cons' : ["div.review-feature__title--negatives ~ div.review-feature__item",[]], 
+            'useful' : ["button.vote-yes > span"],
+            'useless' : ["button.vote-no > span"],
+            'purchased' : ["div.review-pz"],
+            'review_date' : ["span.user-post__published > time:nth-child(1)" ,"datetime"],
+            'purchase_date' : ["span.user-post__published > time:nth-child(2)" ,"datetime"],
+        }
 
 while next_page:
     #response = requests.get('https://www.ceneo.pl/71299209#tab=reviews')
@@ -32,24 +48,14 @@ while next_page:
 
     for review in reviews:
         single_review = {
-            'review_id' : review["data-entry-id"],
-            'author' : extract_element(review, "span.user-post__author-name"),
-            'recommendation' : extract_element(review,"span.user-post__author-recomendation"),
-            'stars' : extract_element(review,"span.user-post__score-count"),
-            'content' : extract_element(review,"div.user-post__text"),
-            'pros' : extract_element(review,"div.review-feature__title--positives ~ div.review-feature__item", []),
-            'cons' : extract_element(review,"div.review-feature__title--negatives ~ div.review-feature__item", []),
-            'useful' : extract_element(review,"button.vote-yes > span") ,
-            'useless' : extract_element(review,"button.vote-no > span"),
-            'purchased' : extract_element(review,"div.review-pz"),
-            'review_date' : extract_element(review, "span.user-post__published > time:nth-child(1)" ,"datetime"),
-            'purchase_date' : extract_element(review, "span.user-post__published > time:nth-child(2)" ,"datetime"),
+            key:extract_element(review, *value) for key, value in features.items()
         }
+        single_review["review_id"] = review["data-entry-id"]
         all_reviews.append(single_review)
 
     next_page = extract_element(page_dom, "a.pagination_next", "href")
 
-with open("opinions/39562616.json", "w", encoding="UTF-8") as json_file:
+with open(f"opinions/{product_id}.json", "w", encoding="UTF-8") as json_file:
     json.dump(all_reviews, json_file, ensure_ascii=False,indent=4)
 
 #print(json.dumps(all_reviews, ensure_ascii=False, indent=4))
